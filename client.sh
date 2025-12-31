@@ -1,52 +1,51 @@
+	#!/bin/bash
 
-CLIENT_PID=$$
-#config_file="$HOME/server_config.cfg"
-#FIFO_NAME=$(cat "$config_file")
+	CLIENT_PID=$$
+	config_file="$HOME/server_config.cfg"
+	FIFO_NAME=$(cat "$config_file")
+	FIFO_PATH="$HOME/$FIFO_NAME"
+	fileName="$HOME/tmp/server_reply-$CLIENT_PID"
 
-CLIENT_HOME=$HOME
+	cleanup() {
+	    rm -f "$fileName"
+	    echo -e "\nclient oprit."
+	    exit 0
+	}
+	trap cleanup SIGINT
 
-IP_MASTER="192.168.122.240"
-PASS_MASTER="123"
-USER_MASTER="proiectitbi"
+	clear
+	echo "client activ (PID: $CLIENT_PID). scrie 'help' pentru ajutor"
 
-cleanup() {
+	while true; do
+	    echo -n "comanda: "
+	    read -r cmd
 
-    clear
-    rm "$HOME/tmp/server_reply-$CLIENT_PID"
-    echo "Program has stopped..."
-    exit 0
+	    [[ -z "$cmd" ]] && continue
+	    [[ "$cmd" == "exit" ]] && cleanup
 
-}
+	    #1. sterg reply-ul vechi
+	    rm -f "$fileName"
 
-trap cleanup SIGINT
+	    #2. scriere sincrona 
+	    echo "$CLIENT_PID:$cmd" > "$FIFO_PATH"
+	    
+	    #adaug timeout 5s
+	    timer=0
+	    while [[ ! -f "$fileName" ]]; do
+	        sleep 0.2
+	        ((timer++))
+	        if [[ $timer -gt 25 ]]; then 
+	            echo "Eroare: timeout"
+	            break
+	        fi
+	    done
 
-#echo $CLIENT_PID
-clear
-
-#Login master
-expect -c "
-    # 1. Set a timeout
-    set timeout 1
-
-
-    # 2. Start the connection
-    # (Bash expands these variables before Expect starts)
-    spawn rlogin $IP_MASTER -l $USER_MASTER
-
-    # 3. Handle the password prompt
-    # Note: We must escape quotes (\") inside the -c block
-    expect \"*assword:\" 
-    send \"$PASS_MASTER\r\"
-
-    # 4. Wait for prompt
-    # We use \\\$ to handle the dollar sign safely through Bash and Expect
-    expect -re \"(\\\$|#|>) \"
-
-	#Run the remote client script located inside master
-
-	send \"./remote_client.sh && exit\r\"
-
-	interact
-    
-"
-
+	    # 3. citire
+	    if [[ -f "$fileName" ]]; then
+	        #afisez rezultatul
+	        cat "$fileName"
+	        
+	        # sterg imediat dupa citire(just to be safe?)
+	        rm -f "$fileName"
+	    fi
+	done
