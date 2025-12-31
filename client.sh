@@ -20,6 +20,8 @@
 	    echo -n "comanda: "
 	    read -r cmd
 
+
+		#trebuie sa rescriu comenzile help si clear...
 	    [[ -z "$cmd" ]] && continue
 	    [[ "$cmd" == "exit" ]] && cleanup
 
