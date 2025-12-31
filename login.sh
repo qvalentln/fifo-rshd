@@ -1,3 +1,6 @@
+#e irelevant asta, doar daca 
+#pun serverul pe un vm (ceea ce nu cred ca trebuie..)
+
 
 IP_MASTER="192.168.122.240"
 PASS_MASTER="123"
@@ -6,23 +9,23 @@ USER_MASTER="proiectitbi"
 clear
 
 expect -c "
-    # 1. Set a timeout
+    # 1. timeout
     set timeout 3
 
-    # 2. Start the connection
-    # (Bash expands these variables before Expect starts)
+    # 2. connect
+    
     spawn rlogin $IP_MASTER -l $USER_MASTER
 
-    # 3. Handle the password prompt
-    # Note: We must escape quotes (\") inside the -c block
+    # 3. passwd prompt handling
+    # trebuie sa folosesc escapeuri
     expect \"*assword:\" 
     send \"$PASS_MASTER\r\"
 
-    # 4. Wait for prompt
-    # We use \\\$ to handle the dollar sign safely through Bash and Expect
+    # 4. wait prompt
+    # \\\$ ptr prompt
     expect -re \"(\\\$|#|>) \"
 
-    # 5. Hand control to the user
+    # 5. hand control to user
     interact
 "
 
