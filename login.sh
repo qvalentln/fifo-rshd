@@ -1,5 +1,5 @@
 #e irelevant asta, doar daca 
-#pun serverul pe un vm (ceea ce nu cred ca trebuie..)
+#pun serverul pe un vm (ceea ce nu cred ca trebuie...)
 
 
 IP_MASTER="192.168.122.240"
