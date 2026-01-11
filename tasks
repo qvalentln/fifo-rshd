@@ -1,5 +1,3 @@
-
-
 -rescris parsarea pentru BEGIN-REQ[client-pid:cmd]END-REQ (Stefan)
   (in prezent trimit comenzile in format client-pid:cmd)
 -mod n executie comenzi (partea finala de la master) (Andrei)
