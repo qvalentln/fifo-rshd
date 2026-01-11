@@ -1,4 +1,4 @@
-~~-rescris comenzile help, clear (DONE)~~
+
 
 -rescris parsarea pentru BEGIN-REQ[client-pid:cmd]END-REQ (Stefan)
   (in prezent trimit comenzile in format client-pid:cmd)
