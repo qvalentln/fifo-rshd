@@ -81,24 +81,6 @@ echo "master activ pe $FIFO_PATH"
 echo "CTRL+C pentru exit"
 
 
-#varianta mea cu round-robin (facuta pe branci, sa vedem daca e buna)
 while true; do
-	if read -r data <&3; then
-        [[ -z "$data" ]] && continue
-        
-        IFS=":" read -r CLIENT_PID COMMAND <<< "$data"
-        cmd=$(echo "$cmd" | xargs)
-
-		#reply_dir lowkey e doar tmp
-        fileName="$REPLY_DIR/server_reply-$CLIENT_PID"
-        
-        final_instruction="$cmd > \"$fileName\" 2>&1"
-
-        slave_idx=$(( (icmd % K) + 1 ))
-        target_pipe="slave_$slave_idx"
-
-        echo "Comanda de la $CLIENT_PID trimisa la slave-ul $slave_idx"
-        echo "$final_instruction" > "$target_pipe" &
-        ((icmd++))
-    fi
+	#round robin traznit...
 done
