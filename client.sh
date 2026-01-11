@@ -1,10 +1,12 @@
 	#!/bin/bash
-
+	#update: path-urile oricum sunt irelevante, 
+	#asa punem toate fisierele(fifo+cfg) in acelasi loc cu scripturile, 
+	#ce ramane insa batut in cuie e directorul tmp ce tine replyurile
 	CLIENT_PID=$$
-	config_file="$HOME/server_config.cfg"
+	config_file="server_config.cfg"
 	FIFO_NAME=$(cat "$config_file")
-	FIFO_PATH="$HOME/$FIFO_NAME"
-	fileName="$HOME/tmp/server_reply-$CLIENT_PID"
+	FIFO_PATH="$FIFO_NAME"
+	fileName="tmp/server_reply-$CLIENT_PID"
 
 	cleanup() {
 	    rm -f "$fileName"
