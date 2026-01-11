@@ -22,8 +22,8 @@
 	    echo -n "comanda: "
 	    read -r cmd
 
-
-		 [[ -z "$cmd" ]] && continue
+		#cmd vid
+		[[ -z "$cmd" ]] && continue
 	    
 	   	if [[ "$cmd" == "exit" ]]; then
 	   		cleanup
