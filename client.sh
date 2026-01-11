@@ -23,9 +23,27 @@
 	    read -r cmd
 
 
-		#trebuie sa rescriu comenzile help si clear...
-	    [[ -z "$cmd" ]] && continue
-	    [[ "$cmd" == "exit" ]] && cleanup
+		 [[ -z "$cmd" ]] && continue
+	    
+	   	if [[ "$cmd" == "exit" ]]; then
+	   		cleanup
+	   	fi
+	   		
+
+		if [[ "$cmd" == "clear" ]]; then
+			clear
+			continue
+		fi
+		
+	    if [[ "$cmd" == "help" ]]; then
+	    	echo
+	    	echo "help - comenzi suportate de program"
+	    	echo "clear - curata ecranul"
+	    	echo "[cmd] - scrie o comanda linux"
+	    	echo "exit - oprire"
+	    	echo
+	    	continue
+	    fi
 
 	    #1. sterg reply-ul vechi
 	    rm -f "$fileName"
