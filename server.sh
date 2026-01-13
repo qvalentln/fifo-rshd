@@ -1,13 +1,18 @@
 #!/bin/bash
-#aceeasi treaba cu fisierele ca la client
-K=3
+
+K=$1
 CONFIG_FILE="server_config.cfg"
 REPLY_DIR="tmp"
-#daca cfg-ul este gol, numele default va fi main_fifo
 FIFO_NAME=$(cat "$CONFIG_FILE" 2>/dev/null || echo "main_fifo")
 FIFO_PATH="$FIFO_NAME"
 
 #rutina de curatare
+notdef(){
+	echo -e "\nUtilizare: ./server.sh [numarul de slave-uri]"
+	cleanup
+}
+
+
 cleanup() {
     echo -e "\n\ninchid..."
 
@@ -36,6 +41,15 @@ cleanup() {
 }
 
 trap cleanup SIGINT
+
+#verific daca parametrul a fost primit corect (este un numar nenul)
+[[ -z "$K" ]] && notdef 
+
+if ! [ "$K" -eq "$K" ] 2>/dev/null; then
+    notdef
+fi
+
+
 
 mkdir -p "$REPLY_DIR"
 [ -p "$FIFO_PATH" ] || mkfifo "$FIFO_PATH"
@@ -72,15 +86,34 @@ do
             fi
         done" &
         
-    #retin PID, va fi util cand inchidem terminalele la 
-	#oprirea serverului
+    #retin PID
     slid+=($!)
 done
 icmd=0
 echo "master activ pe $FIFO_PATH"
 echo "CTRL+C pentru exit"
 
-
 while true; do
-	#round robin traznit...
+	    if read -r linie <&3; then
+        #cu ajutorul comenzii sed se parseaza cererea catre slave
+        continut=$(echo "$linie" | sed -n 's/.*BEGIN-REQ\[\(.*\)\]END-REQ.*/\1/p')
+ 
+        #in urma parsarii se verifica corectitudinea formatului rezultatului
+        if [[ -z "$continut" ]]; then
+            echo "Eroare: Format mesaj invalid: $linie"
+            continue
+        fi
+ 
+        #din textul ramas "pid:cmd" se extrag cei doi parametri 
+        c_pid=$(echo "$continut" | cut -d':' -f1)
+        c_cmd=$(echo "$continut" | cut -d':' -f2-)
+ 
+        #se alege in sistem round-robin circular slaveul
+        target=$(( (icmd % K) + 1 ))
+        ((icmd++))
+ 
+        #se efectueaza comunicarea cu slaveul
+        echo "($c_cmd) > $REPLY_DIR/server_reply-$c_pid 2>&1" > "slave_$target"
+        #echo "Master: Am trimis '$c_cmd' de la clientul $c_pid la sclavul $target"
+    fi
 done
