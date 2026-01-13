@@ -1,73 +1,71 @@
-	#!/bin/bash
-	#update: path-urile oricum sunt irelevante, 
-	#asa punem toate fisierele(fifo+cfg) in acelasi loc cu scripturile, 
-	#ce ramane insa batut in cuie e directorul tmp ce tine replyurile
-	CLIENT_PID=$$
-	config_file="server_config.cfg"
-	FIFO_NAME=$(cat "$config_file")
-	FIFO_PATH="$FIFO_NAME"
-	fileName="tmp/server_reply-$CLIENT_PID"
+#!/bin/bash
 
-	cleanup() {
-	    rm -f "$fileName"
-	    echo -e "\nclient oprit."
-	    exit 0
-	}
-	trap cleanup SIGINT
+#variabilele de uz general ale programului
+CLIENT_PID=$$
+config_file="server_config.cfg"
+FIFO_NAME=$(cat "$config_file")
+FIFO_PATH="$FIFO_NAME"
+fileName="tmp/server_reply-$CLIENT_PID"
 
-	clear
-	echo "client activ (PID: $CLIENT_PID). scrie 'help' pentru ajutor"
+#la terminarea programului se curata directorul curent
+cleanup(){
+	rm -f "$fileName"
+	echo -e "\nclient oprit."
+	exit 0
+}
+trap cleanup SIGINT
 
-	while true; do
-	    echo -n "comanda: "
-	    read -r cmd
+clear
+echo "client activ (PID: $CLIENT_PID). scrie 'help' pentru ajutor"
 
-		#cmd vid
-		[[ -z "$cmd" ]] && continue
-	    
-	   	if [[ "$cmd" == "exit" ]]; then
-	   		cleanup
-	   	fi
-	   		
+while true; do
+	echo -n "comanda: "
+	read -r cmd
 
-		if [[ "$cmd" == "clear" ]]; then
-			clear
-			continue
-		fi
+	#cmd vid
+	[[ -z "$cmd" ]] && continue
+	
+	if [[ "$cmd" == "exit" ]]; then
+		cleanup
+	fi
 		
-	    if [[ "$cmd" == "help" ]]; then
-	    	echo
-	    	echo "help - comenzi suportate de program"
-	    	echo "clear - curata ecranul"
-	    	echo "[cmd] - scrie o comanda linux"
-	    	echo "exit - oprire"
-	    	echo
-	    	continue
-	    fi
 
-	    #1. sterg reply-ul vechi
-	    rm -f "$fileName"
+	if [[ "$cmd" == "clear" ]]; then
+		clear
+		continue
+	fi
+	
+	if [[ "$cmd" == "help" ]]; then
+		echo
+		echo "help - comenzi suportate de program"
+		echo "clear - curata ecranul"
+		echo "[cmd] - scrie o comanda linux"
+		echo "exit - oprire"
+		echo
+		continue
+	fi
 
-	    #2. scriere sincrona 
-	    echo "$CLIENT_PID:$cmd" > "$FIFO_PATH"
-	    
-	    #adaug timeout 5s
-	    timer=0
-	    while [[ ! -f "$fileName" ]]; do
-	        sleep 0.2
-	        ((timer++))
-	        if [[ $timer -gt 25 ]]; then 
-	            echo "Eroare: timeout"
-	            break
-	        fi
-	    done
+	#stergerea raspunsurilor anterioare
+	rm -f "$fileName"
 
-	    # 3. citire
-	    if [[ -f "$fileName" ]]; then
-	        #afisez rezultatul
-	        cat "$fileName"
-	        
-	        # sterg imediat dupa citire(just to be safe?)
-	        rm -f "$fileName"
-	    fi
+	#transmitereaa comenzii catre master
+	#formatul comenzii este cel din cerint, respectiv "BEGIN-REQ[$CLIENT_PID:$cmd]END-REQ"
+	echo "BEGIN-REQ[$CLIENT_PID:$cmd]END-REQ" > "$FIFO_PATH"
+	
+	#pentru exectuarea asincrona se adauga un cooldown
+	timer=0
+	while [[ ! -f "$fileName" ]]; do
+		sleep 0.2
+		((timer++))
+		if [[ $timer -gt 25 ]]; then 
+			echo "Eroare: timeout"
+			break
+		fi
 	done
+
+	#etapa de primire a raspunsurilor de la slave
+	if [[ -f "$fileName" ]]; then
+		cat "$fileName"
+		rm -f "$fileName"
+	fi
+done
