@@ -3,7 +3,8 @@
 #variabilele de uz general ale programului
 CLIENT_PID=$$
 config_file="server_config.cfg"
-FIFO_NAME=$(cat "$config_file" 2>/dev/null || echo "main_fifo")
+FIFO_NAME=$(cat "$config_file" 2>/dev/null)
+[[ -z "$FIFO_NAME" ]] && FIFO_NAME="main_fifo"
 FIFO_PATH="$FIFO_NAME"
 fileName="tmp/server_reply-$CLIENT_PID"
 
