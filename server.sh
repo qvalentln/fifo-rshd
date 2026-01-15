@@ -3,7 +3,8 @@
 K=$1
 CONFIG_FILE="server_config.cfg"
 REPLY_DIR="tmp"
-FIFO_NAME=$(cat "$CONFIG_FILE" 2>/dev/null || echo "main_fifo")
+FIFO_NAME=$(cat "$CONFIG_FILE" 2>/dev/null)
+[[ -z "$FIFO_NAME" ]] && FIFO_NAME="main_fifo"
 FIFO_PATH="$FIFO_NAME"
 
 #rutina de curatare
