@@ -114,7 +114,7 @@ while true; do
         ((icmd++))
  
         #se efectueaza comunicarea cu slaveul
-        echo "($c_cmd) > $REPLY_DIR/server_reply-$c_pid 2>&1" > "slave_$target"
+        echo "$c_cmd > $REPLY_DIR/server_reply-$c_pid 2>&1" > "slave_$target"
         #echo "Master: Am trimis '$c_cmd' de la clientul $c_pid la sclavul $target"
     fi
 done
